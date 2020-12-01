@@ -1,0 +1,36 @@
+variables:
+  DOCKER_IMAGE: ubuntu:latest
+
+image: $DOCKER_IMAGE
+
+stages:
+  - build
+  - test
+  - deploy
+
+x64.linux.build:
+  stage: build
+  script:
+    - apt-get update
+    - DEBIAN_FRONTEND=noninteractive apt-get -y install build-essential scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm dos2unix recode
+    - scons -j 8 bits=64 platform=linuxbsd target=debug tests=yes
+  artifacts:
+    paths:
+      - bin/
+
+x64.linux.test:
+  stage: test
+  script:
+    - apt-get update
+    - DEBIAN_FRONTEND=noninteractive apt-get -yq install build-essential scons pkg-config libx11-dev libxcursor-dev libxinerama-dev libgl1-mesa-dev libglu-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxrandr-dev yasm dos2unix recode
+    - ./bin/godot.linuxbsd.tools.opt.64 --test
+
+x64.linux.deploy:
+  stage: deploy
+  script:
+    - apt-get update
+    - DEBIAN_FRONTEND=noninteractive apt-get -y install zip
+    - zip -j godotPackage.zip bin/godot.linuxbsd.tools.opt.64
+  artifacts:
+    paths:
+      - $GODOT_X64_L_BINARY.zip
